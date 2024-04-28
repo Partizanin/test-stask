@@ -4,6 +4,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -14,18 +17,31 @@ public class User {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    @Email
+    @NotBlank(message = "email is mandatory")
     private String email;
+
+    @NotBlank(message = "firstName is mandatory")
     private String firstName;
+
+    @NotBlank(message = "lastName is mandatory")
     private String lastName;
+
+    @NotNull(message = "birthDate is mandatory")
     private LocalDate birthDate;
     private String address;
     private String phoneNumber;
 
-    public User() {}
+    public User() {
+    }
 
-    public User(String firstName, String lastName) {
+    public User(String email, String firstName, String lastName, LocalDate birthDate, String address, String phoneNumber) {
+        this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.birthDate = birthDate;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
     }
 
     public Long getId() {
