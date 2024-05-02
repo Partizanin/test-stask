@@ -1,5 +1,6 @@
 package com.clear.solution.webapp.controller;
 
+import com.clear.solution.webapp.component.Patcher;
 import com.clear.solution.webapp.exception.UserAddressNotFoundException;
 import com.clear.solution.webapp.exception.UserBirthDateNotFoundException;
 import com.clear.solution.webapp.exception.UserBirthDateRangeNotFoundException;
@@ -12,11 +13,15 @@ import com.clear.solution.webapp.model.User;
 import com.clear.solution.webapp.service.UserService;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -76,12 +81,12 @@ public class UsersController {
         return ResponseEntity.ok(userservice.findByBirthDate(birthDate).orElseThrow(() -> new UserBirthDateNotFoundException(birthDate)));
     }
 
-    @GetMapping(params = {"from","to"})
+    @GetMapping(params = {"from", "to"})
     ResponseEntity<List<User>> getUserByBirthDateRange(@RequestParam LocalDate from, @RequestParam LocalDate to) {
         if (from.isAfter(to)) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(userservice.findByBirthDateRange(from,to).orElseThrow(() -> new UserBirthDateRangeNotFoundException(from,to)));
+        return ResponseEntity.ok(userservice.findByBirthDateRange(from, to).orElseThrow(() -> new UserBirthDateRangeNotFoundException(from, to)));
     }
 
 //    post mapping
@@ -94,5 +99,53 @@ public class UsersController {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(userservice.saveUser(user));
+    }
+
+    @PutMapping("/{id}")
+    ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+        System.out.println("updateUser mapping");
+        User body = userservice.findById(id).map(
+                userFromDb -> {
+                    userFromDb.setFirstName(user.getFirstName());
+                    userFromDb.setLastName(user.getLastName());
+                    userFromDb.setAddress(user.getAddress());
+                    userFromDb.setBirthDate(user.getBirthDate());
+                    userFromDb.setEmail(user.getEmail());
+                    userFromDb.setPhoneNumber(user.getPhoneNumber());
+                    return userservice.saveUser(userFromDb);
+                }
+        ).orElseThrow(() -> new UserIdNotFoundException(id));
+
+        return ResponseEntity.ok(body);
+    }
+
+    @PatchMapping()
+    ResponseEntity<User> patchUser(@RequestBody User patchUser) {
+        Optional<User> userByIdOpt = userservice.findById(patchUser.getId());
+
+        if (userByIdOpt.isPresent()) {
+            User userById = userByIdOpt.get();
+            try {
+                Patcher.userPatcher(userById, patchUser);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            return ResponseEntity.ok(userservice.saveUser(userById));
+        } else {
+            throw new UserIdNotFoundException(patchUser.getId());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<User> deleteUser(@PathVariable Long id) {
+        Optional<User> userByIdOpt = userservice.findById(id);
+
+        if (userByIdOpt.isEmpty()) {
+            throw new UserIdNotFoundException(id);
+        } else {
+            userservice.deleteUser(userByIdOpt.get());
+            return ResponseEntity.ok().build();
+        }
     }
 }

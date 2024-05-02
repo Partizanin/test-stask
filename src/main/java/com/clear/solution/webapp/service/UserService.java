@@ -69,4 +69,8 @@ public class UserService {
         System.out.println("MINIMUM_YEARS_REQUIRED " + MINIMUM_YEARS_REQUIRED);
         return years < MINIMUM_YEARS_REQUIRED;
     }
+
+    public void deleteUser(User user) {
+        userRepository.delete(user);
+    }
 }
