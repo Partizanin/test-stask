@@ -81,19 +81,11 @@ public class UserService {
                 .orElseThrow(() -> new UserBirthDateRangeNotFoundException(from, to)));
     }
 
-    public User saveUser(User user) {
-        return userRepository.save(user);
-    }
-
     private boolean userAgeLessThan(User user) {
         long years = ChronoUnit.YEARS.between(user.getBirthDate(), LocalDate.now());
         System.out.println("years: " + years);
         System.out.println("MINIMUM_YEARS_REQUIRED " + MINIMUM_YEARS_REQUIRED);
         return years < MINIMUM_YEARS_REQUIRED;
-    }
-
-    public void deleteUser(User user) {
-        userRepository.delete(user);
     }
 
     public ResponseEntity<User> updateUser(Long id, User user) {
