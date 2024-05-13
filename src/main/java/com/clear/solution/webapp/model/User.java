@@ -35,6 +35,12 @@ public class User {
     public User() {
     }
 
+    public User(Long userId, LocalDate localDate) {
+        this.id = userId;
+        this.birthDate = localDate;
+    }
+
+
     public User(String email, String firstName, String lastName, LocalDate birthDate, String address, String phoneNumber) {
         this.email = email;
         this.firstName = firstName;
