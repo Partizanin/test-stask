@@ -57,7 +57,7 @@ class UserServiceTest {
         autoCloseable = MockitoAnnotations.openMocks(this);
         this.userService = new UserService(userRepository);
         this.patcherMockedStatic = mockStatic(Patcher.class);
-        ReflectionTestUtils.setField(userService, "MINIMUM_YEARS_REQUIRED", 18L);
+        ReflectionTestUtils.setField(userService, "MINIMUM_YEARS_REQUIRED", 18);
     }
 
     @AfterEach
@@ -192,7 +192,15 @@ class UserServiceTest {
 
     @Test
     void findByBirthDateRangeWithException() {
-        assertThrows(UserBirthDateRangeNotFoundException.class, () -> userService.findByBirthDateRange(USER_BIRTHDAY, USER_BIRTHDAY));
+        assertThrows(UserBirthDateRangeNotFoundException.class, () ->
+                userService.findByBirthDateRange(USER_BIRTHDAY, USER_BIRTHDAY));
+    }
+
+    @Test
+    void findByBirthDateRangeBadRequest() {
+        ResponseEntity<List<User>> response =
+                userService.findByBirthDateRange(USER_BIRTHDAY.plusDays(1), USER_BIRTHDAY);
+        assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -218,7 +226,7 @@ class UserServiceTest {
         user.setId(1L);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(USER));
         given(userRepository.save(USER)).willReturn(any(User.class));
-        ResponseEntity<User> response = userService.patchUser(user);
+        ResponseEntity<User> response = userService.patchUser(user, user.getId());
         ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
         patcherMockedStatic.verify(() -> Patcher.userPatcher(any(User.class), any(User.class)));
         verify(userRepository).save(userArgumentCaptor.capture());
@@ -227,7 +235,7 @@ class UserServiceTest {
 
     @Test
     void patchUserWithException() {
-        assertThrows(UserIdNotFoundException.class, () -> userService.patchUser(new User(1L, LocalDate.of(2000, 1, 1))));
+        assertThrows(UserIdNotFoundException.class, () -> userService.patchUser(new User(1L, LocalDate.of(2000, 1, 1)), 1L));
     }
 
     @Test

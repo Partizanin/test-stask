@@ -88,9 +88,10 @@ public class UsersController {
         return userservice.updateUser(id, user);
     }
 
-    @PatchMapping()
-    ResponseEntity<User> patchUser(@RequestBody User patchUser) {
-        return userservice.patchUser(patchUser);
+    @PatchMapping("/{id}")
+    ResponseEntity<User> patchUser(@PathVariable Long id, @RequestBody User patchUser) {
+        System.out.println("patchUserId: " + id);
+        return userservice.patchUser(patchUser,id);
     }
 
     @DeleteMapping("/{id}")

@@ -8,9 +8,7 @@ public class Patcher {
 
         Class<?> userClass = User.class;
         Field[] userFields = userClass.getDeclaredFields();
-        System.out.println(userFields.length);
         for (Field field : userFields) {
-            System.out.println(field.getName());
             field.setAccessible(true);
             Object value = field.get(patchedUser);
             if (value != null) {

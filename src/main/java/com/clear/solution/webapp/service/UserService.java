@@ -23,8 +23,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-    @Value("${minimum-required-age}")
-    private Long MINIMUM_YEARS_REQUIRED = 21L;
+    @Value("${min-required-age}")
+    private Integer MIN_YEARS_REQUIRED = 21;
 
     private final UserRepository userRepository;
 
@@ -84,9 +84,8 @@ public class UserService {
 
     private boolean userAgeLessThan(User user) {
         long years = ChronoUnit.YEARS.between(user.getBirthDate(), LocalDate.now());
-        System.out.println("years: " + years);
-        System.out.println("MINIMUM_YEARS_REQUIRED " + MINIMUM_YEARS_REQUIRED);
-        return years < MINIMUM_YEARS_REQUIRED;
+        System.out.println("MINIMUM_YEARS_REQUIRED " + MIN_YEARS_REQUIRED);
+        return years < MIN_YEARS_REQUIRED;
     }
 
     public ResponseEntity<User> updateUser(Long id, User user) {
@@ -105,8 +104,8 @@ public class UserService {
         return ResponseEntity.ok(body);
     }
 
-    public ResponseEntity<User> patchUser(User patchUser) {
-        Optional<User> userByIdOpt = userRepository.findById(patchUser.getId());
+    public ResponseEntity<User> patchUser(User patchUser, Long id) {
+        Optional<User> userByIdOpt = userRepository.findById(id);
 
         if (userByIdOpt.isPresent()) {
             User userById = userByIdOpt.get();
@@ -134,9 +133,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> createUser(User user) {
-        System.out.println("createUser mapping");
         if (userAgeLessThan(user)) {
-            System.out.println("bad request");
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
